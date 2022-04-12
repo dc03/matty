@@ -101,17 +101,31 @@ class FixedMatrix4 : Aliases<T> {
 
 template <typename T>
 constexpr FixedMatrix4<T>::FixedMatrix4() noexcept {
+#ifdef MATTY_USE_x86_SIMD_128
+    store_128bit(CAST_STORE_128BIT(data), set1_32bit(0));
+    store_128bit(CAST_STORE_128BIT(data + 4), set1_32bit(0));
+    store_128bit(CAST_STORE_128BIT(data + 8), set1_32bit(0));
+    store_128bit(CAST_STORE_128BIT(data + 12), set1_32bit(0));
+#else
     for (auto &i : data) {
         i = 0;
     }
+#endif
 }
 
 template <typename T>
 template <typename U>
 constexpr void FixedMatrix4<T>::construct_with_one(U value) {
+#ifdef MATTY_USE_x86_SIMD_128
+    store_128bit(CAST_STORE_128BIT(data), set1_32bit(value));
+    store_128bit(CAST_STORE_128BIT(data + 4), set1_32bit(value));
+    store_128bit(CAST_STORE_128BIT(data + 8), set1_32bit(value));
+    store_128bit(CAST_STORE_128BIT(data + 12), set1_32bit(value));
+#else
     for (auto &i : data) {
         i = value;
     }
+#endif
 }
 
 template <typename T>
@@ -192,10 +206,15 @@ template <typename T>
 constexpr FixedMatrix4<T> FixedMatrix4<T>::copy() const {
     FixedMatrix4<T> result;
 #ifdef MATTY_USE_x86_SIMD_128
-    for (std::size_t i = 0; i < 4; i++) {
-        value_128bit val = load_128bit(CAST_LOAD_128BIT(data + i * 4));
-        store_128bit(CAST_STORE_128BIT(result.data + i * 4), val);
-    }
+    value_128bit row0 = load_128bit(CAST_LOAD_128BIT(data));
+    value_128bit row1 = load_128bit(CAST_LOAD_128BIT(data + 4));
+    value_128bit row2 = load_128bit(CAST_LOAD_128BIT(data + 8));
+    value_128bit row3 = load_128bit(CAST_LOAD_128BIT(data + 12));
+
+    store_128bit(CAST_STORE_128BIT(result.data), row0);
+    store_128bit(CAST_STORE_128BIT(result.data + 4), row1);
+    store_128bit(CAST_STORE_128BIT(result.data + 8), row2);
+    store_128bit(CAST_STORE_128BIT(result.data + 12), row3);
 #else
     for (std::size_t i = 0; i < M * N; i++) {
         result.data[i] = data[i];
