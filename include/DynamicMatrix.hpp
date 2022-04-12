@@ -7,14 +7,16 @@
 #define MATTY_DYNAMIC_MATRIX_HPP
 
 #include "includes.hpp"
+#include "internal/Aliases.hpp"
 
 namespace matty {
 template <typename T = int>
-class DynamicMatrix {
+class DynamicMatrix : Aliases<T> {
 #ifdef MATTY_USE_x86_SIMD_128
     static constexpr std::size_t elements_per_vector = sizeof(__m128i) / sizeof(T);
-    static_assert(elements_per_vector > 0, "Contained type cannot be larger than 128-bit vector");
 #endif
+
+    USING_ALL_ALIASES
 
     std::unique_ptr<T[]> data{};
     std::size_t M{};
@@ -132,10 +134,10 @@ void DynamicMatrix<T>::add_self(const DynamicMatrix<T> &other) {
 #ifdef MATTY_USE_x86_SIMD_128
     std::size_t remainder = (M * N) % elements_per_vector;
     for (; i < (M * N) - remainder; i += elements_per_vector) {
-        __m128i first = _mm_load_si128(reinterpret_cast<__m128i *>(data.get() + i));
-        __m128i second = _mm_load_si128(reinterpret_cast<__m128i *>(other.data.get() + i));
-        __m128i added = _mm_add_epi32(first, second);
-        _mm_store_si128(reinterpret_cast<__m128i *>(data.get() + i), added);
+        value_128bit first = load_128bit(CAST_LOAD_128BIT(data.get() + i));
+        value_128bit second = load_128bit(CAST_LOAD_128BIT(other.data.get() + i));
+        value_128bit added = add_32bit(first, second);
+        store_128bit(CAST_STORE_128BIT(data.get() + i), added);
     }
 #endif
 
@@ -161,10 +163,10 @@ void DynamicMatrix<T>::sub_self(const DynamicMatrix<T> &other) {
 #ifdef MATTY_USE_x86_SIMD_128
     constexpr std::size_t remainder = (M * N) % elements_per_vector;
     for (; i < (M * N) - remainder; i += elements_per_vector) {
-        __m128i first = _mm_load_si128(reinterpret_cast<__m128i *>(data.get() + i));
-        __m128i second = _mm_load_si128(reinterpret_cast<__m128i *>(other.data.get() + i));
-        __m128i added = _mm_sub_epi32(first, second);
-        _mm_store_si128(reinterpret_cast<__m128i *>(data.get() + i), added);
+        value_128bit first = load_128bit(CAST_LOAD_128BIT(data.get() + i));
+        value_128bit second = load_128bit(CAST_LOAD_128BIT(other.data.get() + i));
+        value_128bit subtracted = sub_32bit(first, second);
+        store_128bit(CAST_STORE_128BIT(data.get() + i), subtracted);
     }
 #endif
 
@@ -188,11 +190,10 @@ DynamicMatrix<T> DynamicMatrix<T>::mul(const DynamicMatrix<T2> &other) const {
     for (std::size_t i = 0; i < M; i++) {
         for (std::size_t k = 0; k < N; k++) {
             for (std::size_t j = 0; j < other.N - remainder; j += elements_per_vector) {
-                __m128i _this = _mm_load_si128(reinterpret_cast<const __m128i *>((*this)[i] + k));
-                __m128i _other = _mm_load_si128(reinterpret_cast<const __m128i *>(other[k] + j));
-                __m128i result2 = _mm_load_si128(reinterpret_cast<__m128i *>(result[i] + j));
-                result2 = _mm_add_epi32(result2, _mm_mul_epi32(_this, _other));
-                _mm_store_si128(reinterpret_cast<__m128i *>(result[i] + j), result2);
+                value_128bit first = load_128bit(CAST_LOAD_128BIT(data.get() + from_xy_index(i, k)));
+                value_128bit second = load_128bit(CAST_LOAD_128BIT(other.data.get() + from_xy_index(k, j)));
+                value_128bit multiplied = mul_32bit(first, second);
+                store_128bit(CAST_STORE_128BIT(result.data.get() + from_xy_index(i, j)), multiplied);
             }
         }
     }
