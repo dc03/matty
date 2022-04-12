@@ -1,10 +1,8 @@
 # matty
 
 Matty is a small C++ library consisting of two classes:
-- `matty::DynamicMatrix`: a dynamically-sized matrix of integers
+- `matty::DynamicMatrix`: a dynamically-sized matrix of either integers or floats
 - `matty:FixedMatrix4`: a 4x4 matrix of either integers or floats
-
-Note: `matty::DynamicMatrix` is much weaker than `matty::FixedMatrix4` as it contains less methods and only accepts integers
 
 ## Example
 
@@ -82,6 +80,32 @@ x8:--------
 774 858 942 1026 
 1182 1314 1446 1578 
 1590 1770 1950 2130 
+```
+
+### Code:
+
+```cpp
+    DynamicMatrix<int> m10 = DynamicMatrix<int>::identity(4, 7);
+    std::cout << "\nm10:--------\n";
+    print(m10);
+    std::cout << "\nm10 + 2 * 5 - 1:--------\n";
+    print((m10 + 2) * 5 - 1);
+```
+
+### Output:
+
+```
+m10:--------
+1 0 0 0 0 0 0 
+0 1 0 0 0 0 0 
+0 0 1 0 0 0 0 
+0 0 0 1 0 0 0 
+
+m10 + 2 * 5 - 1:--------
+14 9 9 9 9 9 9 
+9 14 9 9 9 9 9 
+9 9 14 9 9 9 9 
+9 9 9 14 9 9 9 
 ```
 
 ## License
