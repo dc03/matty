@@ -123,5 +123,11 @@ int main() {
     std::cout << "\nx8:--------\n";
     print(x8);
 
+    DynamicMatrix<int> m10 = DynamicMatrix<int>::identity(4, 7);
+    std::cout << "\nm10:--------\n";
+    print(m10);
+    std::cout << "\nm10 + 2 * 5 - 1:--------\n";
+    print((m10 + 2) * 5 - 1);
+
     return 0;
 }
